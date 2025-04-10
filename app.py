@@ -86,3 +86,4 @@ if image_data:
     st.info(f"🔍 **Possible Cause**: {disease_causes.get(predicted_class, 'Information not available.')}")
     st.write(f"📊 **Confidence**: {confidence:.2f}%")
 
+
