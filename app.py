@@ -87,3 +87,4 @@ if image_data:
     st.write(f"📊 **Confidence**: {confidence:.2f}%")
 
 
+
