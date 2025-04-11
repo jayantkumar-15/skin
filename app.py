@@ -5,19 +5,19 @@ import numpy as np
 from PIL import Image
 import io
 
-# Load the trained model
-model = tf.keras.models.load_model('C:/Users/91814/Desktop/skin/vs/skin_disease_classifier4.keras')
+# Load your trained model
+model = tf.keras.models.load_model('skin_disease_classifier4.keras')
 
-# Image size expected by the model
+# Define image size
 img_height, img_width = 224, 224
 
-# Class names
+# Define class names (update this based on your training directory structure)
 class_names = [
     'cellulitis', 'impetigo', 'athlete-foot', 'nail-fungus',
     'ringworm', 'cutaneous-larva-migrans', 'chickenpox', 'shingles'
 ]
 
-# Disease causes
+# Define causes for each class
 disease_causes = {
     'cellulitis': 'Often caused by cuts or wounds exposed to bacteria in soil or contaminated water during fieldwork.',
     'impetigo': 'Can result from minor skin injuries or insect bites in hot, humid farm environments.',
@@ -29,62 +29,45 @@ disease_causes = {
     'shingles': 'Reactivation of chickenpox virus, often triggered by physical stress or prolonged sun exposure on the farm.'
 }
 
-# UI setup
-st.set_page_config(page_title="AgriDerm", layout="centered")
-st.title("🌾 AgriDerm: Skin Disease Detection for Farmers")
-st.write("Upload a skin image **or use your camera** to detect potential diseases and see possible causes.")
 
-# Input option
+# Streamlit UI
+st.set_page_config(page_title="AgriDerm - Skin Disease Detector", layout="centered")
+st.title("🌾 AgriDerm: Skin Disease Detection for Farmers")
+st.write("Upload a skin image **or use your camera** to detect potential diseases and view likely causes.")
+
+# Input method
 upload_option = st.radio("Choose input method:", ("📤 Upload Image", "📷 Use Camera"))
 
 image_data = None
-image_filename = None
-image_bytes = None
 
-# Upload image
+# Handle upload
 if upload_option == "📤 Upload Image":
     uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
     if uploaded_file:
         image_data = Image.open(uploaded_file).convert("RGB")
-        image_filename = uploaded_file.name
-        image_bytes = uploaded_file.getvalue()
 
-# Capture image
+# Handle camera input
 elif upload_option == "📷 Use Camera":
     captured_image = st.camera_input("Take a photo using your webcam")
     if captured_image:
         image_data = Image.open(io.BytesIO(captured_image.getvalue())).convert("RGB")
-        image_filename = "camera_capture.jpg"
-        image_bytes = captured_image.getvalue()
 
-# Display and process image
+# Process image and make prediction
 if image_data:
     st.image(image_data, caption="Input Image", use_column_width=True)
-    st.write(f"📝 **Image Filename**: `{image_filename}`")
 
-    # Download button
-    if image_bytes:
-        st.download_button(
-            label="📥 Download Image",
-            data=image_bytes,
-            file_name=image_filename,
-            mime="image/jpeg"
-        )
-
-    # Preprocess and predict
+    # Preprocess the image
     img = image_data.resize((img_width, img_height))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0) / 255.0
 
+    # Predict
     predictions = model.predict(img_array)
     predicted_class_index = np.argmax(predictions[0])
     predicted_class = class_names[predicted_class_index]
     confidence = np.max(predictions[0]) * 100
 
-    # Results
+    # Show result
     st.success(f"🩺 **Predicted Disease**: {predicted_class}")
     st.info(f"🔍 **Possible Cause**: {disease_causes.get(predicted_class, 'Information not available.')}")
     st.write(f"📊 **Confidence**: {confidence:.2f}%")
-
-
-
